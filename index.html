@@ -88,6 +88,39 @@ header{display:flex;align-items:flex-end;justify-content:space-between;margin-bo
   font-family:var(--mono);font-size:10px;padding:4px 10px;cursor:pointer;transition:all .15s;letter-spacing:.05em;}
 .tab:hover{border-color:rgba(78,255,176,.3);color:var(--text);}
 .tab.active{background:rgba(78,255,176,.12);border-color:rgba(78,255,176,.4);color:var(--accent);}
+
+/* ── 모바일 ── */
+@media(max-width:480px){
+  .wrapper{padding:20px 14px;}
+  header{margin-bottom:24px;padding-bottom:16px;flex-direction:column;align-items:flex-start;gap:8px;}
+  .h1{font-size:22px;}
+  .update-time{font-size:10px;}
+
+  /* 상단 카드: 2열 */
+  .g5{grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px;}
+  /* 총자산 카드만 전체 폭 */
+  .g5 .card:first-child{grid-column:1/-1;}
+  .cval{font-size:17px;}
+  .card{padding:14px 14px!important;}
+
+  /* 차트 높이 줄이기 */
+  .cw{height:180px;}
+  .cw-lg{height:200px;}
+
+  /* 도넛: 세로 배치 */
+  .dlayout{flex-direction:column;align-items:center;gap:12px;padding:4px 0;}
+  .legend{width:100%;}
+  .li{font-size:11px;}
+
+  /* 시장 지수 차트 헤더: 타이틀+뱃지 위, 탭 아래 */
+  .ch{flex-wrap:wrap;gap:8px;}
+  .ctitle{font-size:13px;}
+  .tab-group{width:100%;}
+  .tab{flex:1;text-align:center;padding:5px 4px;font-size:10px;}
+
+  .section-label{font-size:9px;margin-bottom:10px;}
+  .g21,.g2{gap:12px;margin-bottom:14px;}
+}
 </style>
 </head>
 <body>
@@ -193,7 +226,7 @@ header{display:flex;align-items:flex-end;justify-content:space-between;margin-bo
 </div>
 
 <script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbzobFUDAdt3OuEJpWLDhu9wC9YOzLUTItB_el3iBJiPk2ETY02i2Z7YXOACENFg-LU/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbyu63OGSiI_Xl_RG2L4i2WyGvcWZMT-NlQEkenL_XoCiulc5_a8FIwviil1i_rCfmZ13w/exec';
 const PROXY = 'https://corsproxy.io/?';
 const C = {cash:'#7eb3ff',stock:'#4fffb0',coin:'#ffb347',gold:'#ff6b8a',snp:'#4fffb0',schd:'#7eb3ff',qqq:'#c084fc',cc:'#ffb347'};
 
