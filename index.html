@@ -82,6 +82,12 @@ header{display:flex;align-items:flex-end;justify-content:space-between;margin-bo
 .spinner{width:22px;height:22px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
 .err{color:var(--red);font-size:11px;text-align:center;padding:20px;line-height:1.8;}
+
+.tab-group{display:flex;gap:4px;}
+.tab{background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--muted);
+  font-family:var(--mono);font-size:10px;padding:4px 10px;cursor:pointer;transition:all .15s;letter-spacing:.05em;}
+.tab:hover{border-color:rgba(78,255,176,.3);color:var(--text);}
+.tab.active{background:rgba(78,255,176,.12);border-color:rgba(78,255,176,.4);color:var(--accent);}
 </style>
 </head>
 <body>
@@ -158,14 +164,28 @@ header{display:flex;align-items:flex-end;justify-content:space-between;margin-bo
   </div>
 </div>
 
-<div class="section-label">시장 지수 — 최근 3년</div>
+<div class="section-label">시장 지수</div>
 <div class="g2">
   <div class="card chart-outer">
-    <div class="ch"><div class="ctitle">S&amp;P 500</div><div class="cbadge" id="bdg-snp">3Y</div></div>
+    <div class="ch">
+      <div class="ctitle">S&amp;P 500 <span class="cbadge" id="bdg-snp" style="margin-left:8px">+0%</span></div>
+      <div class="tab-group" id="tabs-snp">
+        <button class="tab active" onclick="switchTab('snp','6mo',this)">6개월</button>
+        <button class="tab" onclick="switchTab('snp','1y',this)">1년</button>
+        <button class="tab" onclick="switchTab('snp','3y',this)">3년</button>
+      </div>
+    </div>
     <div class="cw-lg" id="w-snp"><div class="loading"><div class="spinner"></div>불러오는 중</div></div>
   </div>
   <div class="card chart-outer">
-    <div class="ch"><div class="ctitle">나스닥 (NASDAQ)</div><div class="cbadge" id="bdg-nas">3Y</div></div>
+    <div class="ch">
+      <div class="ctitle">나스닥 (QQQ) <span class="cbadge" id="bdg-nas" style="margin-left:8px">+0%</span></div>
+      <div class="tab-group" id="tabs-nas">
+        <button class="tab active" onclick="switchTab('nas','6mo',this)">6개월</button>
+        <button class="tab" onclick="switchTab('nas','1y',this)">1년</button>
+        <button class="tab" onclick="switchTab('nas','3y',this)">3년</button>
+      </div>
+    </div>
     <div class="cw-lg" id="w-nas"><div class="loading"><div class="spinner"></div>불러오는 중</div></div>
   </div>
 </div>
@@ -173,9 +193,7 @@ header{display:flex;align-items:flex-end;justify-content:space-between;margin-bo
 </div>
 
 <script>
-const CSV_URL = 'https://corsproxy.io/?' + encodeURIComponent(
-  'https://docs.google.com/spreadsheets/d/e/2PACX-1vSi-vGD0eiTPlr5tHVzDfRWIikpQQNFu1T2kbBUun8gk_C3ToWVLx-YuKe98n5l0j1cYJdT6KS6m4tK/pub?gid=812399532&single=true&output=csv'
-);
+const API_URL = 'https://script.google.com/macros/s/AKfycbzobFUDAdt3OuEJpWLDhu9wC9YOzLUTItB_el3iBJiPk2ETY02i2Z7YXOACENFg-LU/exec';
 const PROXY = 'https://corsproxy.io/?';
 const C = {cash:'#7eb3ff',stock:'#4fffb0',coin:'#ffb347',gold:'#ff6b8a',snp:'#4fffb0',schd:'#7eb3ff',qqq:'#c084fc',cc:'#ffb347'};
 
@@ -200,18 +218,21 @@ function parseLine(line){
 }
 
 async function loadData(){
-  const res=await fetch(CSV_URL);
-  const text=await res.text();
-  console.log('[CSV]',text.slice(0,400));
-  const lines=text.trim().split(/\r?\n/);
-  return lines.slice(1)
-    .map(parseLine)
-    .filter(r=>r[0]&&r[1]&&!isNaN(parseNum(r[1]))&&parseNum(r[1])>0)
-    .map(r=>({
-      date:r[0].trim(), total:parseNum(r[1]), cash:parseNum(r[2]),
-      stock:parseNum(r[3]), coin:parseNum(r[4]), gold:parseNum(r[5]),
-      snp:parseNum(r[7]), schd:parseNum(r[8]), qqq:parseNum(r[9]), cc:parseNum(r[10]),
-    }));
+  const res = await fetch(API_URL);
+  const json = await res.json();
+  console.log('[API 응답]', json.slice(0,2));
+  return json.filter(r => r.total > 0).map(r => ({
+    date:  String(r.date),
+    total: Number(r.total),
+    cash:  Number(r.cash),
+    stock: Number(r.stock),
+    coin:  Number(r.coin),
+    gold:  Number(r.gold),
+    snp:   Number(r.snp),
+    schd:  Number(r.schd),
+    qqq:   Number(r.qqq),
+    cc:    Number(r.cc),
+  }));
 }
 
 Chart.defaults.color='#5a6070';
@@ -404,35 +425,86 @@ async function render(){
       카테고리 데이터 없음<br><small style="color:#3a4050">CSV 재게시 후 새로고침 해주세요</small></div>`;
   }
 
-  // 시장 지수
-  renderMarket('SPY','w-snp','c-snp','S&P 500','#4fffb0','bdg-snp');
-  renderMarket('QQQ','w-nas','c-nas','나스닥(QQQ)','#7eb3ff','bdg-nas');
+  // 시장 지수 — 기본 1개월로 시작
+  renderMarket('SPY','snp','S&P 500','#4fffb0','6mo');
+  renderMarket('QQQ','nas','나스닥(QQQ)','#7eb3ff','6mo');
 }
 
-async function renderMarket(symbol,wrapId,canvasId,name,color,badgeId){
-  const wrap=document.getElementById(wrapId);
-  try{
-    const url=`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1wk&range=3y`;
-    const res=await fetch(PROXY+encodeURIComponent(url));
-    const json=await res.json();
-    const result=json?.chart?.result?.[0];
-    if(!result)throw new Error('응답 없음');
-    const ts=result.timestamp||[];
-    const cl=result.indicators.quote[0].close||[];
-    const pts=ts.map((t,i)=>({t,v:cl[i]})).filter(p=>p.v!==null&&!isNaN(p.v));
-    if(!pts.length)throw new Error('유효 데이터 없음');
-    const labs=pts.map(p=>{const d=new Date(p.t*1000);return d.getFullYear()+'.'+(d.getMonth()+1).toString().padStart(2,'0');});
-    const vals=pts.map(p=>p.v);
-    const pct=((vals[vals.length-1]-vals[0])/vals[0]*100).toFixed(2);
-    const bdg=document.getElementById(badgeId);
-    bdg.textContent='3Y '+(pct>=0?'+':'')+pct+'%';
-    bdg.style.color=pct>=0?'#4fffb0':'#ff4d6d';
-    wrap.innerHTML=`<canvas id="${canvasId}"></canvas>`;
-    lineChart(canvasId,name,color,vals,labs,v=>v.toFixed(2));
-  }catch(e){
-    console.error('[시장지수]',name,e);
-    wrap.innerHTML=`<div class="err">${name} 로드 실패<br><small>${e.message}</small><br><small style="color:#3a4050">새로고침 해보세요</small></div>`;
+// 기간별 설정
+const RANGE_CONFIG = {
+  '6mo': { range:'6mo', interval:'1d', label:'6개월' },
+  '1y':  { range:'1y',  interval:'1d', label:'1년'   },
+  '3y':  { range:'3y',  interval:'1wk', label:'3년'  },
+};
+
+// 차트 인스턴스 저장
+const marketCharts = {};
+
+async function renderMarket(symbol, key, name, color, rangeKey) {
+  const wrapId  = 'w-'+key;
+  const canvasId = 'c-'+key;
+  const badgeId  = 'bdg-'+key;
+  const wrap = document.getElementById(wrapId);
+  const cfg  = RANGE_CONFIG[rangeKey];
+
+  wrap.innerHTML = '<div class="loading"><div class="spinner"></div>불러오는 중</div>';
+
+  try {
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=${cfg.interval}&range=${cfg.range}`;
+    const res  = await fetch(PROXY + encodeURIComponent(url));
+    const json = await res.json();
+    const result = json?.chart?.result?.[0];
+    if (!result) throw new Error('응답 없음');
+
+    const ts = result.timestamp || [];
+    const cl = result.indicators.quote[0].close || [];
+    const pts = ts.map((t,i) => ({t, v:cl[i]})).filter(p => p.v !== null && !isNaN(p.v));
+    if (!pts.length) throw new Error('유효 데이터 없음');
+
+    // x축: 일별 MM/DD, 주별 YYYY.MM
+    const labs = pts.map(p => {
+      const d = new Date(p.t * 1000);
+      if (cfg.interval === '1d') {
+        return (d.getMonth()+1).toString().padStart(2,'0') + '/' + d.getDate().toString().padStart(2,'0');
+      } else {
+        return d.getFullYear() + '.' + (d.getMonth()+1).toString().padStart(2,'0');
+      }
+    });
+    const vals = pts.map(p => p.v);
+
+    const pct = ((vals[vals.length-1] - vals[0]) / vals[0] * 100).toFixed(2);
+    const bdg = document.getElementById(badgeId);
+    bdg.textContent = cfg.label + ' ' + (pct >= 0 ? '+' : '') + pct + '%';
+    bdg.style.color  = pct >= 0 ? '#4fffb0' : '#ff4d6d';
+
+    wrap.innerHTML = `<canvas id="${canvasId}"></canvas>`;
+
+    // 기존 차트 파괴 후 재생성
+    if (marketCharts[key]) { marketCharts[key].destroy(); }
+    marketCharts[key] = lineChart(canvasId, name, color, vals, labs, v => v.toFixed(2));
+
+    // 탭 전환을 위해 symbol/color 저장
+    wrap.dataset.symbol = symbol;
+    wrap.dataset.name   = name;
+    wrap.dataset.color  = color;
+    wrap.dataset.key    = key;
+
+  } catch(e) {
+    console.error('[시장지수]', name, e);
+    wrap.innerHTML = `<div class="err">${name} 로드 실패<br><small>${e.message}</small></div>`;
   }
+}
+
+function switchTab(key, rangeKey, btn) {
+  // 탭 활성화 스타일
+  document.querySelectorAll(`#tabs-${key} .tab`).forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  const wrap   = document.getElementById('w-'+key);
+  const symbol = wrap.dataset.symbol;
+  const name   = wrap.dataset.name;
+  const color  = wrap.dataset.color;
+  renderMarket(symbol, key, name, color, rangeKey);
 }
 
 render();
