@@ -554,6 +554,11 @@ async function fetchChangeRates(symbol, elId) {
     const p15d = getIdx(15);
     const p30d = pts[0].v;
 
+    // 최근 20일 내 고점
+    const cutoff20 = pts[pts.length-1].t - 20 * 86400;
+    const recent20 = pts.filter(p => p.t >= cutoff20);
+    const high20 = recent20.length > 0 ? Math.max(...recent20.map(p => p.v)) : null;
+
     function badge(label, past) {
       if (!past) return '';
       const pct = ((cur - past) / past * 100);
@@ -569,7 +574,8 @@ async function fetchChangeRates(symbol, elId) {
       badge('1일전', p1d) +
       badge('7일전', p7d) +
       badge('15일전', p15d) +
-      badge('30일전', p30d);
+      badge('30일전', p30d) +
+      badge('20일고점比', high20);
 
   } catch(e) {
     el.innerHTML = `<span style="color:#5a6070;font-size:11px">변동률 로드 실패</span>`;
