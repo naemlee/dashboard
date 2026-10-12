@@ -93,6 +93,8 @@ header{display:flex;align-items:flex-end;justify-content:space-between;margin-bo
 .chg-badge{font-family:var(--mono);font-size:11px;padding:4px 10px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);}
 .chg-badge .chg-label{color:var(--muted);font-size:9px;letter-spacing:.08em;text-transform:uppercase;margin-right:4px;}
 .chg-badge .chg-val{font-weight:500;}
+.mk-btn{font-family:var(--mono);font-size:10px;padding:3px 10px;border-radius:5px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);cursor:pointer;}
+.mk-btn.active{color:var(--accent);border-color:var(--accent);}
 
 /* ── 모바일 ── */
 @media(max-width:480px){
@@ -215,7 +217,8 @@ header{display:flex;align-items:flex-end;justify-content:space-between;margin-bo
     <div class="chg-row" id="chg-snp"><div class="loading" style="height:24px;min-height:0"><div class="spinner" style="width:14px;height:14px"></div></div></div>
   </div>
   <div style="height:400px;border-radius:8px;overflow:hidden">
-    <iframe src="https://s.tradingview.com/widgetembed/?symbol=TVC%3ASPX&interval=D&theme=dark&style=1&locale=kr&toolbar_bg=%23111318&hide_side_toolbar=0&allow_symbol_change=0&save_image=0&hideideas=1&backgroundColor=%230a0b0e&gridColor=%231e2330" frameborder="0" width="100%" height="100%" allowtransparency="true" scrolling="no"></iframe>
+    <div class="mk-range" data-key="snp" style="display:flex;gap:6px;margin-bottom:8px"><button class="mk-btn active" data-r="6mo">6개월</button><button class="mk-btn" data-r="1y">1년</button><button class="mk-btn" data-r="3y">3년</button></div>
+    <div style="height:calc(100% - 34px);position:relative"><canvas id="mk-snp"></canvas></div>
   </div>
 </div>
 
@@ -226,7 +229,8 @@ header{display:flex;align-items:flex-end;justify-content:space-between;margin-bo
     <div class="chg-row" id="chg-nas"><div class="loading" style="height:24px;min-height:0"><div class="spinner" style="width:14px;height:14px"></div></div></div>
   </div>
   <div style="height:400px;border-radius:8px;overflow:hidden">
-    <iframe src="https://s.tradingview.com/widgetembed/?symbol=TVC%3AIXIC&interval=D&theme=dark&style=1&locale=kr&toolbar_bg=%23111318&hide_side_toolbar=0&allow_symbol_change=0&save_image=0&hideideas=1&backgroundColor=%230a0b0e&gridColor=%231e2330" frameborder="0" width="100%" height="100%" allowtransparency="true" scrolling="no"></iframe>
+    <div class="mk-range" data-key="nas" style="display:flex;gap:6px;margin-bottom:8px"><button class="mk-btn active" data-r="6mo">6개월</button><button class="mk-btn" data-r="1y">1년</button><button class="mk-btn" data-r="3y">3년</button></div>
+    <div style="height:calc(100% - 34px);position:relative"><canvas id="mk-nas"></canvas></div>
   </div>
 </div>
 
@@ -237,7 +241,8 @@ header{display:flex;align-items:flex-end;justify-content:space-between;margin-bo
     <div class="chg-row" id="chg-rut"><div class="loading" style="height:24px;min-height:0"><div class="spinner" style="width:14px;height:14px"></div></div></div>
   </div>
   <div style="height:400px;border-radius:8px;overflow:hidden">
-    <iframe src="https://s.tradingview.com/widgetembed/?symbol=TVC%3ARUT&interval=D&theme=dark&style=1&locale=kr&toolbar_bg=%23111318&hide_side_toolbar=0&allow_symbol_change=0&save_image=0&hideideas=1&backgroundColor=%230a0b0e&gridColor=%231e2330" frameborder="0" width="100%" height="100%" allowtransparency="true" scrolling="no"></iframe>
+    <div class="mk-range" data-key="rut" style="display:flex;gap:6px;margin-bottom:8px"><button class="mk-btn active" data-r="6mo">6개월</button><button class="mk-btn" data-r="1y">1년</button><button class="mk-btn" data-r="3y">3년</button></div>
+    <div style="height:calc(100% - 34px);position:relative"><canvas id="mk-rut"></canvas></div>
   </div>
 </div>
 
@@ -592,7 +597,38 @@ async function fetchChangeRates(symbol, elId, priceId, highId) {
     el.innerHTML = `<span style="color:#5a6070;font-size:11px">변동률 로드 실패</span>`;
   }
 }
+
+const MK_SYMBOL = { snp:'^GSPC', nas:'^IXIC', rut:'^RUT' };
+const MK_COLOR  = { snp:'#7eb3ff', nas:'#c084fc', rut:'#ffb347' };
+
+async function drawMarketChart(key, rangeKey) {
+  const cfg = RANGE_CONFIG[rangeKey];
+  try {
+    const json = await fetchMarket(MK_SYMBOL[key], cfg.interval, cfg.range);
+    const r = json?.chart?.result?.[0];
+    if (!r) throw new Error('no data');
+    const cl = r.indicators.quote[0].close || [];
+    const pts = (r.timestamp || []).map((t,i) => ({t, v:cl[i]})).filter(p => p.v != null);
+    const labels = pts.map(p => { const d = new Date(p.t*1000); return (d.getFullYear()%100)+'/'+(d.getMonth()+1)+'/'+d.getDate(); });
+    const fmtIdx = v => Number(v).toLocaleString('en-US', {maximumFractionDigits:2});
+    if (marketCharts[key]) marketCharts[key].destroy();
+    marketCharts[key] = lineChart('mk-'+key, '지수', MK_COLOR[key], pts.map(p => p.v), labels, fmtIdx);
+  } catch(e) {
+    const c = document.getElementById('mk-'+key);
+    if (c) c.parentElement.innerHTML = '<div style="color:#5a6070;font-size:11px;padding:20px">차트 데이터 로드 실패</div>';
+  }
+}
+
+document.querySelectorAll('.mk-range').forEach(box => {
+  box.addEventListener('click', e => {
+    const btn = e.target.closest('.mk-btn'); if (!btn) return;
+    box.querySelectorAll('.mk-btn').forEach(b => b.classList.toggle('active', b === btn));
+    drawMarketChart(box.dataset.key, btn.dataset.r);
+  });
+});
+
 render();
+['snp','nas','rut'].forEach(k => drawMarketChart(k, '6mo'));
 </script>
 </body>
 </html>
