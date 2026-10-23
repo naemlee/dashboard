@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>내 자산 대시보드</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -95,6 +96,8 @@ header{display:flex;align-items:flex-end;justify-content:space-between;margin-bo
 .chg-badge .chg-val{font-weight:500;}
 .mk-btn{font-family:var(--mono);font-size:10px;padding:3px 10px;border-radius:5px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);cursor:pointer;}
 .mk-btn.active{color:var(--accent);border-color:var(--accent);}
+.mk-legend{position:absolute;top:6px;left:8px;z-index:3;font-family:var(--mono);font-size:10px;color:var(--muted);pointer-events:none;}
+.mk-legend b{color:var(--text);font-weight:500;margin-right:8px;}
 
 /* ── 모바일 ── */
 @media(max-width:480px){
@@ -216,9 +219,9 @@ header{display:flex;align-items:flex-end;justify-content:space-between;margin-bo
     <div class="ctitle">S&amp;P 500 <span id="price-snp" style="font-size:13px;color:var(--accent);margin-left:10px;font-weight:700"></span><span id="high-snp" style="font-size:10px;color:var(--muted);margin-left:8px"></span></div>
     <div class="chg-row" id="chg-snp"><div class="loading" style="height:24px;min-height:0"><div class="spinner" style="width:14px;height:14px"></div></div></div>
   </div>
-  <div style="height:400px;border-radius:8px;overflow:hidden">
-    <div class="mk-range" data-key="snp" style="display:flex;gap:6px;margin-bottom:8px"><button class="mk-btn active" data-r="6mo">6개월</button><button class="mk-btn" data-r="1y">1년</button><button class="mk-btn" data-r="3y">3년</button></div>
-    <div style="height:calc(100% - 34px);position:relative"><canvas id="mk-snp"></canvas></div>
+  <div style="height:520px;border-radius:8px;overflow:hidden">
+    <div class="mk-range" data-key="snp" style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap"><button class="mk-btn" data-d="30">1개월</button><button class="mk-btn" data-d="91">3개월</button><button class="mk-btn active" data-d="182">6개월</button><button class="mk-btn" data-d="365">1년</button><button class="mk-btn" data-d="1095">3년</button><button class="mk-btn" data-d="0">5년</button></div>
+    <div id="mk-snp" style="height:calc(100% - 34px);position:relative"><div class="mk-legend" id="mk-snp-legend"></div></div>
   </div>
 </div>
 
@@ -228,9 +231,9 @@ header{display:flex;align-items:flex-end;justify-content:space-between;margin-bo
     <div class="ctitle">나스닥 <span id="price-nas" style="font-size:13px;color:var(--accent);margin-left:10px;font-weight:700"></span><span id="high-nas" style="font-size:10px;color:var(--muted);margin-left:8px"></span></div>
     <div class="chg-row" id="chg-nas"><div class="loading" style="height:24px;min-height:0"><div class="spinner" style="width:14px;height:14px"></div></div></div>
   </div>
-  <div style="height:400px;border-radius:8px;overflow:hidden">
-    <div class="mk-range" data-key="nas" style="display:flex;gap:6px;margin-bottom:8px"><button class="mk-btn active" data-r="6mo">6개월</button><button class="mk-btn" data-r="1y">1년</button><button class="mk-btn" data-r="3y">3년</button></div>
-    <div style="height:calc(100% - 34px);position:relative"><canvas id="mk-nas"></canvas></div>
+  <div style="height:520px;border-radius:8px;overflow:hidden">
+    <div class="mk-range" data-key="nas" style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap"><button class="mk-btn" data-d="30">1개월</button><button class="mk-btn" data-d="91">3개월</button><button class="mk-btn active" data-d="182">6개월</button><button class="mk-btn" data-d="365">1년</button><button class="mk-btn" data-d="1095">3년</button><button class="mk-btn" data-d="0">5년</button></div>
+    <div id="mk-nas" style="height:calc(100% - 34px);position:relative"><div class="mk-legend" id="mk-nas-legend"></div></div>
   </div>
 </div>
 
@@ -240,9 +243,9 @@ header{display:flex;align-items:flex-end;justify-content:space-between;margin-bo
     <div class="ctitle">러셀 2000 <span id="price-rut" style="font-size:13px;color:var(--accent);margin-left:10px;font-weight:700"></span><span id="high-rut" style="font-size:10px;color:var(--muted);margin-left:8px"></span></div>
     <div class="chg-row" id="chg-rut"><div class="loading" style="height:24px;min-height:0"><div class="spinner" style="width:14px;height:14px"></div></div></div>
   </div>
-  <div style="height:400px;border-radius:8px;overflow:hidden">
-    <div class="mk-range" data-key="rut" style="display:flex;gap:6px;margin-bottom:8px"><button class="mk-btn active" data-r="6mo">6개월</button><button class="mk-btn" data-r="1y">1년</button><button class="mk-btn" data-r="3y">3년</button></div>
-    <div style="height:calc(100% - 34px);position:relative"><canvas id="mk-rut"></canvas></div>
+  <div style="height:520px;border-radius:8px;overflow:hidden">
+    <div class="mk-range" data-key="rut" style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap"><button class="mk-btn" data-d="30">1개월</button><button class="mk-btn" data-d="91">3개월</button><button class="mk-btn active" data-d="182">6개월</button><button class="mk-btn" data-d="365">1년</button><button class="mk-btn" data-d="1095">3년</button><button class="mk-btn" data-d="0">5년</button></div>
+    <div id="mk-rut" style="height:calc(100% - 34px);position:relative"><div class="mk-legend" id="mk-rut-legend"></div></div>
   </div>
 </div>
 
@@ -526,8 +529,16 @@ const marketCharts = {};
 
 async function fetchMarket(symbol, interval, range) {
   const url = API_URL + '?type=market&symbol=' + encodeURIComponent(symbol) + '&interval=' + interval + '&range=' + range;
-  const res  = await fetch(url);
-  return await res.json();
+  // Apps Script가 가끔 HTML 오류 페이지를 돌려주므로 1회 재시도
+  for (let i = 0; i < 2; i++) {
+    try {
+      const res = await fetch(url);
+      return JSON.parse(await res.text());
+    } catch(e) {
+      if (i === 1) throw e;
+      await new Promise(r => setTimeout(r, 1500));
+    }
+  }
 }
 
 async function fetchChangeRates(symbol, elId, priceId, highId) {
@@ -540,7 +551,8 @@ async function fetchChangeRates(symbol, elId, priceId, highId) {
 
     const ts = result.timestamp || [];
     const cl = result.indicators.quote[0].close || [];
-    const pts = ts.map((t,i) => ({t, v:cl[i]})).filter(p => p.v !== null && !isNaN(p.v));
+    const hi = result.indicators.quote[0].high  || [];
+    const pts = ts.map((t,i) => ({t, v:cl[i], h:hi[i] ?? cl[i]})).filter(p => p.v !== null && !isNaN(p.v));
     if (pts.length < 2) throw new Error('insufficient data');
 
     const cur = pts[pts.length-1].v;
@@ -559,10 +571,11 @@ async function fetchChangeRates(symbol, elId, priceId, highId) {
     const p15d = getIdx(15);
     const p30d = pts[0].v;
 
-    // 최근 20일 내 고점
+    // 최근 20일 내 고점: 마지막 미국 거래일 기준, 달력 20일 전 날짜까지 포함 (예: 10/22 → 10/2~10/22)
     const cutoff20 = pts[pts.length-1].t - 20 * 86400;
     const recent20 = pts.filter(p => p.t >= cutoff20);
-    const high20 = recent20.length > 0 ? Math.max(...recent20.map(p => p.v)) : null;
+    // 장중 고가 기준 (차트 캔들 꼭대기와 일치)
+    const high20 = recent20.length > 0 ? Math.max(...recent20.map(p => p.h)) : null;
 
     function badge(label, past) {
       if (!past) return '';
@@ -599,36 +612,74 @@ async function fetchChangeRates(symbol, elId, priceId, highId) {
 }
 
 const MK_SYMBOL = { snp:'^GSPC', nas:'^IXIC', rut:'^RUT' };
-const MK_COLOR  = { snp:'#7eb3ff', nas:'#c084fc', rut:'#ffb347' };
+const MK_UP = '#4fffb0', MK_DOWN = '#ff4d6d';
+const fmtPx = v => v.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
 
-async function drawMarketChart(key, rangeKey) {
-  const cfg = RANGE_CONFIG[rangeKey];
+// 실제 지수 일봉 5년치를 받아 TradingView Lightweight Charts 캔들로 그림
+async function drawMarketChart(key) {
+  const box = document.getElementById('mk-'+key);
   try {
-    const json = await fetchMarket(MK_SYMBOL[key], cfg.interval, cfg.range);
+    const json = await fetchMarket(MK_SYMBOL[key], '1d', '5y');
     const r = json?.chart?.result?.[0];
     if (!r) throw new Error('no data');
-    const cl = r.indicators.quote[0].close || [];
-    const pts = (r.timestamp || []).map((t,i) => ({t, v:cl[i]})).filter(p => p.v != null);
-    const labels = pts.map(p => { const d = new Date(p.t*1000); return (d.getFullYear()%100)+'/'+(d.getMonth()+1)+'/'+d.getDate(); });
-    const fmtIdx = v => Number(v).toLocaleString('en-US', {maximumFractionDigits:2});
-    if (marketCharts[key]) marketCharts[key].destroy();
-    marketCharts[key] = lineChart('mk-'+key, '지수', MK_COLOR[key], pts.map(p => p.v), labels, fmtIdx);
+    const q = r.indicators.quote[0];
+    const off = r.meta.gmtoffset || 0;
+    const byDay = {};
+    (r.timestamp || []).forEach((t,i) => {
+      if ([q.open[i], q.high[i], q.low[i], q.close[i]].some(v => v == null)) return;
+      const day = new Date((t + off) * 1000).toISOString().slice(0,10);
+      byDay[day] = { time:day, open:q.open[i], high:q.high[i], low:q.low[i], close:q.close[i] };
+    });
+    const candles = Object.values(byDay).sort((a,b) => a.time < b.time ? -1 : 1);
+    if (candles.length < 2) throw new Error('insufficient data');
+
+    const chart = LightweightCharts.createChart(box, {
+      autoSize: true,
+      layout: { background:{type:'solid', color:'transparent'}, textColor:'#5a6070', fontFamily:"'DM Mono',monospace", fontSize:10 },
+      grid: { vertLines:{color:'#1a1e28'}, horzLines:{color:'#1a1e28'} },
+      rightPriceScale: { borderColor:'#1e2330', scaleMargins:{ top:0.06, bottom:0.04 } },
+      timeScale: { borderColor:'#1e2330' },
+      crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+      handleScroll: { vertTouchDrag:false },
+      localization: { locale:'ko-KR', priceFormatter: fmtPx },
+    });
+    const series = chart.addCandlestickSeries({ upColor:MK_UP, downColor:MK_DOWN, borderVisible:false, wickUpColor:MK_UP, wickDownColor:MK_DOWN });
+    series.setData(candles);
+
+    // 마우스 위치의 시가·고가·저가·종가 표시
+    const legend = document.getElementById('mk-'+key+'-legend');
+    const showLegend = c => { legend.innerHTML = `${c.time} &nbsp;시 <b>${fmtPx(c.open)}</b>고 <b>${fmtPx(c.high)}</b>저 <b>${fmtPx(c.low)}</b>종 <b>${fmtPx(c.close)}</b>`; };
+    showLegend(candles[candles.length-1]);
+    chart.subscribeCrosshairMove(p => {
+      const c = p.time && p.seriesData.get(series);
+      showLegend(c ? {time:p.time, ...c} : candles[candles.length-1]);
+    });
+
+    marketCharts[key] = { chart, candles };
+    setMarketRange(key, 182);
   } catch(e) {
-    const c = document.getElementById('mk-'+key);
-    if (c) c.parentElement.innerHTML = '<div style="color:#5a6070;font-size:11px;padding:20px">차트 데이터 로드 실패</div>';
+    box.innerHTML = '<div style="color:#5a6070;font-size:11px;padding:20px">차트 데이터 로드 실패</div>';
   }
+}
+
+function setMarketRange(key, days) {
+  const m = marketCharts[key]; if (!m) return;
+  if (!days) { m.chart.timeScale().fitContent(); return; }
+  const last = m.candles[m.candles.length-1].time;
+  const from = new Date(Date.parse(last) - days * 86400000).toISOString().slice(0,10);
+  m.chart.timeScale().setVisibleRange({ from, to: last });
 }
 
 document.querySelectorAll('.mk-range').forEach(box => {
   box.addEventListener('click', e => {
     const btn = e.target.closest('.mk-btn'); if (!btn) return;
     box.querySelectorAll('.mk-btn').forEach(b => b.classList.toggle('active', b === btn));
-    drawMarketChart(box.dataset.key, btn.dataset.r);
+    setMarketRange(box.dataset.key, Number(btn.dataset.d));
   });
 });
 
 render();
-['snp','nas','rut'].forEach(k => drawMarketChart(k, '6mo'));
+['snp','nas','rut'].forEach(k => drawMarketChart(k));
 </script>
 </body>
 </html>
